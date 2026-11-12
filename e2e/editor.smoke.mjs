@@ -42,6 +42,19 @@ const drag = async (a, b) => {
   await page.mouse.move(q.x, q.y, { steps: 4 });
   await page.mouse.up();
 };
+// The editor reads the tool from React state and Konva redraws its hit graph on the next
+// frame, so a click sent right after a shortcut can still reach the previous tool or miss
+// the shape. Wait until the app has switched and drawn before using the pointer.
+const frames = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+const useTool = async (key, tool) => {
+  await page.keyboard.press(key);
+  await page.waitForFunction((t) => window.__scs?.tool === t, tool, { timeout: 5000 });
+  await frames();
+};
+const state = () => page.evaluate(() => {
+  const s = window.__scs;
+  return JSON.stringify({ tool: s.tool, selected: s.selected.map((id) => s.annotations.find((a) => a.id === id)?.kind), annotations: s.annotations.map((a) => a.kind), editingText: !!document.querySelector(".text-editor") });
+});
 const shot = (name) => page.screenshot({ path: join(out, `${name}.png`) });
 const count = () => page.evaluate(() => document.querySelectorAll(".annotation-layer canvas").length);
 
@@ -49,19 +62,19 @@ const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok, detail });
 
 // Arrow
-await page.keyboard.press("Digit1");
+await useTool("Digit1", "arrow");
 await drag([700, 600], [420, 190]);
 // Shape (rectangle around the save button)
-await page.keyboard.press("Digit4");
+await useTool("Digit4", "shape");
 await drag([100, 470], [300, 540]);
 // Switching tools must not move the stage: the shape lands where the pointer was.
 const shapeY = await page.evaluate(() => window.__scs.annotations.find((a) => a.kind === "shape")?.y);
 check("tool switch keeps stage in place", Math.abs(shapeY - 470) < 3, `shape y=${shapeY}`);
 // Redact (pixelate the email row)
-await page.keyboard.press("Digit3");
+await useTool("Digit3", "redact");
 await drag([100, 165], [460, 200]);
 // Text
-await page.keyboard.press("Digit2");
+await useTool("Digit2", "text");
 const t = at(800, 360);
 await page.mouse.click(t.x, t.y);
 await shot("0-before-text");
@@ -78,16 +91,23 @@ const undoEnabled = await page.locator('button[title^="Undo"]').isEnabled();
 check("undo enabled after drawing", undoEnabled);
 
 // Select tool, select the arrow by clicking its middle, then change colour to blue
-await page.keyboard.press("KeyV");
-const mid = at(560, 395);
+await useTool("KeyV", "select");
+const arrow = await page.evaluate(() => window.__scs.annotations.find((a) => a.kind === "arrow"));
+const mid = at((arrow.x1 + arrow.x2) / 2, (arrow.y1 + arrow.y2) / 2);
 await page.mouse.click(mid.x, mid.y);
-const deleteEnabled = await page.locator('button[title^="Delete"]').isEnabled();
-check("click selects arrow", deleteEnabled);
+const arrowSelected = await page
+  .waitForFunction((id) => window.__scs.selected.length === 1 && window.__scs.selected[0] === id, arrow.id, { timeout: 5000 })
+  .then(() => true, () => false);
+check("click selects arrow", arrowSelected);
+if (!arrowSelected) {
+  await shot("2-arrow-not-selected");
+  throw new Error(`clicking the arrow did not select it: ${await state()}`);
+}
 await page.locator('.colors .dot[title="#0a84ff"]').first().click();
 await shot("2-arrow-selected-blue");
 
 // Drag the arrow's head handle somewhere else
-const head = at(420, 190), newHead = at(560, 120);
+const head = at(arrow.x2, arrow.y2), newHead = at(560, 120);
 await page.mouse.move(head.x, head.y);
 await page.mouse.down();
 await page.mouse.move(newHead.x, newHead.y, { steps: 6 });
@@ -111,7 +131,7 @@ check("auto-redact reports 4 areas", (await page.locator(".toast").textContent()
 await shot("6-auto-redacted");
 
 // Text selection: drag over the server IP line, copy the selected words
-await page.keyboard.press("KeyT");
+await useTool("KeyT", "ocr");
 await page.waitForSelector(".ocr-word");
 await drag([100, 300], [400, 330]);
 const selBtn = page.locator("button", { hasText: "Copy selected" });
