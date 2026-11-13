@@ -28,6 +28,7 @@ export const tr: Dict = {
     text: "Metin",
     redact: "Karart",
     shape: "Şekil",
+    step: "Adım",
     ocr: "Metin seç",
     undo: "Geri al (Ctrl+Z)",
     redo: "Yinele (Ctrl+Y)",

@@ -53,6 +53,9 @@ export interface ToolStyle {
   shapeFilled: boolean;
   redactMode: RedactMode;
   redactColor: string;
+  stepColor: string;
+  /** Radius of a step marker. */
+  stepSize: number;
 }
 
 export const DEFAULT_TOOL_STYLE: ToolStyle = {
@@ -67,6 +70,8 @@ export const DEFAULT_TOOL_STYLE: ToolStyle = {
   shapeFilled: false,
   redactMode: "pixelate",
   redactColor: "#111111",
+  stepColor: "#ff3b30",
+  stepSize: 18,
 };
 
 export const PALETTE = ["#ff3b30", "#ff9500", "#ffcc00", "#34c759", "#0a84ff", "#af52de", "#ffffff", "#111111"];

@@ -1,4 +1,4 @@
-import { BringToFront, EyeOff, MousePointer2, MoveUpRight, Redo2, ScanText, SendToBack, Shapes, Sparkles, Trash2, Type, Undo2, type LucideIcon } from "lucide-react";
+import { BringToFront, EyeOff, ListOrdered, MousePointer2, MoveUpRight, Redo2, ScanText, SendToBack, Shapes, Sparkles, Trash2, Type, Undo2, type LucideIcon } from "lucide-react";
 import type { Annotation, ArrowStyle, RedactMode, ShapeKind } from "../lib/annotations";
 import { PALETTE, ToolStyle, useStore } from "../lib/store";
 import type { Tool } from "./AnnotationLayer";
@@ -11,6 +11,7 @@ const TOOLS: { id: Tool; label: (t: Dict) => string; key: string; Icon: LucideIc
   { id: "text", label: (t) => t.tools.text, key: "2", Icon: Type },
   { id: "redact", label: (t) => t.tools.redact, key: "3", Icon: EyeOff },
   { id: "shape", label: (t) => t.tools.shape, key: "4", Icon: Shapes },
+  { id: "step", label: (t) => t.tools.step, key: "5", Icon: ListOrdered },
   { id: "ocr", label: (t) => t.tools.ocr, key: "T", Icon: ScanText },
 ];
 
@@ -133,6 +134,12 @@ export default function ToolBar(p: Props) {
               </>
             )}
             <Colors value={style.shapeColor} onChange={(shapeColor) => change({ shapeColor })} />
+          </>
+        )}
+        {context === "step" && (
+          <>
+            <Range label={t.tools.size} value={style.stepSize} min={8} max={60} onChange={(stepSize) => change({ stepSize })} />
+            <Colors value={style.stepColor} onChange={(stepColor) => change({ stepColor })} />
           </>
         )}
         {p.tool === "ocr" && (

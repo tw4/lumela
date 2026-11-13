@@ -27,6 +27,7 @@ export const en = {
     text: "Text",
     redact: "Redact",
     shape: "Shape",
+    step: "Step",
     ocr: "Select text",
     undo: "Undo (Ctrl+Z)",
     redo: "Redo (Ctrl+Y)",

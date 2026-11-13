@@ -83,7 +83,7 @@ Lumela checks for new versions in the background and offers a one-click update: 
 | **Capture** | Area, window (press <kbd>Space</kbd> while capturing) or full screen, with global shortcuts and a tray menu. Multi-monitor. Open from a file, the clipboard or drag and drop. |
 | **Beautify** | Automatic background from the screenshot's edge colour, auto-balance, gradients, solid colours, your own image or desktop wallpaper, padding, inset, corner radius and shadow. |
 | **Sizes** | Free, 1:1, 4:3, 3:2, 16:9, 9:16 and presets for X/Twitter, Instagram, LinkedIn, Facebook and YouTube. |
-| **Annotate** | Arrows (straight, curved, double, line), text, rectangles, ellipses and highlights. Move, resize, layer order and undo/redo. |
+| **Annotate** | Arrows (straight, curved, double, line), text, rectangles, ellipses, highlights and numbered steps. Move, resize, layer order and undo/redo. |
 | **Redact** | Pixelate, blur or solid boxes. **Auto redact** finds emails, credit card numbers, IP addresses and API keys in one click. |
 | **Copy text** | On-device text recognition: select words on the image and copy them. |
 | **Export** | Copy, save, save as PNG/JPEG, or drag straight into another app. Lossless PNG compression. Optional watermark. |
@@ -118,7 +118,7 @@ Lumela checks for new versions in the background and offers a one-click update: 
 | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>1</kbd> | Capture the full screen |
 | <kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>S</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | Copy / Save / Save as |
 | <kbd>Ctrl</kbd>+<kbd>V</kbd> / <kbd>Ctrl</kbd>+<kbd>O</kbd> | Open from the clipboard / a file |
-| <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>T</kbd> <kbd>V</kbd> | Arrow, text, redact, shape, select text, select |
+| <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>T</kbd> <kbd>V</kbd> | Arrow, text, redact, shape, step, select text, select |
 | <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> | Undo / redo |
 | <kbd>Delete</kbd>, <kbd>[</kbd> <kbd>]</kbd> | Delete, send backward / bring forward |
 

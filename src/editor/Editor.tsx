@@ -5,7 +5,8 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
-  Annotation, applyStyle, drawAnnotations, emptyHistory, historyReducer, newId, RenderContext, reorder, TextAnn,
+  Annotation, applyStyle, drawAnnotations, emptyHistory, historyReducer, newId, RenderContext, renumberSteps, reorder,
+  TextAnn,
 } from "../lib/annotations";
 import { autoGradient, Background, computeLayout, dominantEdgeColor, Layout, trimBounds, unit } from "../lib/beautify";
 import {
@@ -227,7 +228,8 @@ export default function Editor() {
   const selection = useMemo(() => annotations.filter((a) => selected.includes(a.id)), [annotations, selected]);
   const deleteSelection = () => {
     if (!selected.length) return;
-    commit(annotations.filter((a) => !selected.includes(a.id)));
+    // Removing a step marker closes the gap in the numbering (undo brings the old numbers back).
+    commit(renumberSteps(annotations.filter((a) => !selected.includes(a.id))));
     setSelected([]);
   };
   const order = (front: boolean) => selected.length && commit(reorder(annotations, new Set(selected), front));
@@ -409,6 +411,7 @@ export default function Editor() {
       else if (e.code === "Digit2") a.chooseTool("text");
       else if (e.code === "Digit3") a.chooseTool("redact");
       else if (e.code === "Digit4") a.chooseTool("shape");
+      else if (e.code === "Digit5") a.chooseTool("step");
       else if (k === "t") a.chooseTool("ocr");
       else if (e.key === "]") a.order(true);
       else if (e.key === "[") a.order(false);
