@@ -79,6 +79,8 @@ export const en = {
     apply: "Apply",
     remove: "Delete",
     background: "Background",
+    noBackground: "No background",
+    noBackgroundHint: "The screenshot is exported as captured, with only your annotations. Pick a background to bring the frame back.",
     autoBackground: "Automatic, from the screenshot's edge colour",
     transparent: "Transparent",
     solid: "Solid",

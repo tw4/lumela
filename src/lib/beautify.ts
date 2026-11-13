@@ -18,6 +18,12 @@ export function coverRect(sw: number, sh: number, dw: number, dh: number): Box {
 }
 
 export interface BeautifySettings {
+  /**
+   * false = "No background": the export is the screenshot as captured (plus annotations), with no
+   * background, padding, inset, corners, shadow, ratio or auto-balance. Those values are kept, so
+   * turning the frame back on restores them.
+   */
+  frame: boolean;
   background: Background;
   /** Pick the background from the screenshot's edge colour. */
   autoBackground: boolean;
@@ -35,6 +41,7 @@ export interface BeautifySettings {
 }
 
 export const DEFAULT_SETTINGS: BeautifySettings = {
+  frame: true,
   background: { kind: "gradient", from: "#4facfe", to: "#8e54e9", angle: 135 },
   autoBackground: false,
   autoBalance: true,
@@ -107,6 +114,11 @@ export function unit(w: number, h: number): number {
 }
 
 export function computeLayout(imgW: number, imgH: number, s: BeautifySettings, minRadius = 0): Layout {
+  if (!s.frame) {
+    // The screenshot fills the whole output: same size, square corners, no shadow.
+    const box = { x: 0, y: 0, w: imgW, h: imgH };
+    return { width: imgW, height: imgH, frame: box, image: { ...box }, radius: 0, insetPx: 0, shadow: { blur: 0, offsetY: 0, alpha: 0 } };
+  }
   const u = unit(imgW, imgH);
   const insetPx = Math.round(s.inset * u);
   const pad = s.background.kind === "none" && s.padding === 0 ? 0 : Math.round((s.padding / 100) * Math.min(imgW, imgH));

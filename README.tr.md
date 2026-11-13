@@ -60,7 +60,7 @@ Lumela yeni sürümleri arka planda kontrol eder ve tek tıkla güncelleme sunar
 | | |
 |---|---|
 | **Yakalama** | Alan, pencere (yakalarken <kbd>Space</kbd>) veya tam ekran; genel kısayollar ve tepsi menüsü. Çoklu monitör. Dosyadan, panodan veya sürükle-bırak ile açma. |
-| **Güzelleştirme** | Ekran görüntüsünün kenar renklerinden otomatik arka plan, otomatik denge, gradyanlar, düz renkler, kendi görseliniz veya masaüstü duvar kâğıdı; kenar boşluğu, iç boşluk, köşe yuvarlama ve gölge. |
+| **Güzelleştirme** | Ekran görüntüsünün kenar renklerinden otomatik arka plan, otomatik denge, gradyanlar, düz renkler, kendi görseliniz veya masaüstü duvar kâğıdı; kenar boşluğu, iç boşluk, köşe yuvarlama ve gölge. İstersen hiç arka plan kullanmadan, ekran görüntüsünü yakalandığı gibi paylaşabilirsin. |
 | **Boyutlar** | Serbest, 1:1, 4:3, 3:2, 16:9, 9:16 ve X/Twitter, Instagram, LinkedIn, Facebook, YouTube hazır ayarları. |
 | **Not ekleme** | Oklar (düz, eğri, çift yönlü, çizgi), metin, dikdörtgen, elips, vurgulama ve numaralı adımlar. Taşıma, boyutlandırma, katman sırası ve geri al/yinele. |
 | **Gizleme** | Pikselleştirme, bulanıklaştırma veya düz kutular. **Otomatik gizleme** e-postaları, kredi kartı numaralarını, IP adreslerini ve API anahtarlarını tek tıkla bulur. |

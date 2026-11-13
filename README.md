@@ -81,7 +81,7 @@ Lumela checks for new versions in the background and offers a one-click update: 
 | | |
 |---|---|
 | **Capture** | Area, window (press <kbd>Space</kbd> while capturing) or full screen, with global shortcuts and a tray menu. Multi-monitor. Open from a file, the clipboard or drag and drop. |
-| **Beautify** | Automatic background from the screenshot's edge colour, auto-balance, gradients, solid colours, your own image or desktop wallpaper, padding, inset, corner radius and shadow. |
+| **Beautify** | Automatic background from the screenshot's edge colour, auto-balance, gradients, solid colours, your own image or desktop wallpaper, padding, inset, corner radius and shadow. Or no background at all, to share the screenshot as captured. |
 | **Sizes** | Free, 1:1, 4:3, 3:2, 16:9, 9:16 and presets for X/Twitter, Instagram, LinkedIn, Facebook and YouTube. |
 | **Annotate** | Arrows (straight, curved, double, line), text, rectangles, ellipses, highlights and numbered steps. Move, resize, layer order and undo/redo. |
 | **Redact** | Pixelate, blur or solid boxes. **Auto redact** finds emails, credit card numbers, IP addresses and API keys in one click. |

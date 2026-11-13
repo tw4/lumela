@@ -80,6 +80,8 @@ export const tr: Dict = {
     apply: "Uygula",
     remove: "Sil",
     background: "Arka plan",
+    noBackground: "Arka plan yok",
+    noBackgroundHint: "Ekran görüntüsü yakalandığı gibi, yalnızca eklediğin notlarla dışa aktarılır. Çerçeveyi geri getirmek için bir arka plan seç.",
     autoBackground: "Görüntünün kenar renginden otomatik",
     transparent: "Şeffaf",
     solid: "Düz",

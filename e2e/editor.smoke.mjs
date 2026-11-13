@@ -173,6 +173,26 @@ await page.locator("button.primary", { hasText: "Copy" }).click();
 await page.waitForTimeout(500);
 check("copy invoked mock", logs.some((l) => l.includes("[mock] copy_rgba")));
 
+// No background: the output is the screenshot at its own size, fully opaque; a background brings the frame back
+const sizeLabel = () => page.locator(".toolbar .dim").first().textContent();
+const opaqueCorners = () => page.evaluate(() => {
+  const c = document.querySelector(".preview");
+  const ctx = c.getContext("2d");
+  return [[0, 0], [c.width - 1, 0], [0, c.height - 1], [c.width - 1, c.height - 1]]
+    .every(([x, y]) => ctx.getImageData(x, y, 1, 1).data[3] === 255);
+});
+await page.locator("button.no-background").click();
+await page.waitForFunction(() => document.querySelector(".toolbar .dim")?.textContent === "1280 × 800", null, { timeout: 5000 })
+  .catch(() => {});
+check("no background keeps the screenshot size", (await sizeLabel()) === "1280 × 800", await sizeLabel());
+check("no background leaves no transparent margin", await opaqueCorners());
+check("no background hides frame and ratio", (await page.locator(".panel h2", { hasText: /^Frame$/ }).count()) === 0);
+await shot("6b-no-background");
+await page.locator('.swatch[title="Azure"]').click();
+await page.waitForFunction(() => document.querySelector(".toolbar .dim")?.textContent === "1440 × 960", null, { timeout: 5000 })
+  .catch(() => {});
+check("picking a background restores the frame", (await sizeLabel()) === "1440 × 960", await sizeLabel());
+
 // Presets: save the current settings, change padding, re-apply
 await page.locator("button", { hasText: "Save current settings" }).click();
 await page.locator(".preset-name").fill("Blog");

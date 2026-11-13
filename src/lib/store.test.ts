@@ -27,4 +27,19 @@ describe("presets", () => {
     expect(useStore.getState().presets).toHaveLength(0);
     expect(useStore.getState().lastPresetId).toBeNull();
   });
+
+  it("saves 'No background' in a preset", () => {
+    useStore.getState().setBeautify({ frame: false });
+    const id = useStore.getState().savePreset("Plain");
+    useStore.getState().setBeautify({ frame: true });
+    useStore.getState().applyPreset(id);
+    expect(useStore.getState().beautify.frame).toBe(false);
+  });
+
+  it("keeps the frame on for presets saved before 'No background' existed", () => {
+    const { frame: _, ...old } = DEFAULT_SETTINGS;
+    useStore.setState({ presets: [{ id: "old", name: "Old", beautify: old as typeof DEFAULT_SETTINGS }] });
+    useStore.getState().applyPreset("old");
+    expect(useStore.getState().beautify.frame).toBe(true);
+  });
 });
