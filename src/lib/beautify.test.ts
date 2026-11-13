@@ -33,6 +33,25 @@ describe("computeLayout", () => {
   it("honours a minimum radius", () => {
     expect(computeLayout(100, 100, { ...DEFAULT_SETTINGS, radius: 0 }, 10).radius).toBe(10);
   });
+
+  it("with no background, keeps the screenshot's size and drops padding, inset, corners, shadow and ratio", () => {
+    const framed = { ...DEFAULT_SETTINGS, padding: 30, inset: 20, radius: 40, shadow: 80, ratio: "16:9" as const };
+    const l = computeLayout(1280, 800, { ...framed, frame: false }, 10);
+    expect(l.width).toBe(1280);
+    expect(l.height).toBe(800);
+    expect(l.frame).toEqual({ x: 0, y: 0, w: 1280, h: 800 });
+    expect(l.image).toEqual(l.frame);
+    expect(l.radius).toBe(0);
+    expect(l.insetPx).toBe(0);
+    expect(l.shadow.alpha).toBe(0);
+  });
+
+  it("brings the frame back with the values it had", () => {
+    const framed = { ...DEFAULT_SETTINGS, padding: 30, ratio: "16:9" as const };
+    const before = computeLayout(1280, 800, framed);
+    computeLayout(1280, 800, { ...framed, frame: false });
+    expect(computeLayout(1280, 800, { ...framed, frame: true })).toEqual(before);
+  });
 });
 
 describe("coverRect", () => {

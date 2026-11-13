@@ -24,9 +24,12 @@ export default function Panel({ edgeBackground, onError }: { edgeBackground: Bac
   const set = (p: Partial<BeautifySettings>) => setBeautify(p);
   const bg = s.background;
 
-  const pickBg = (b: Background) => set({ background: b, autoBackground: false });
+  // Picking any background turns the frame back on with the padding, corners and shadow it had.
+  const pickBg = (b: Background) => set({ background: b, autoBackground: false, frame: true });
   const custom = bg.kind === "gradient" ? bg : { kind: "gradient" as const, from: "#4facfe", to: "#8e54e9", angle: 135 };
-  const imageBg = !s.autoBackground && bg.kind === "image" ? bg : null;
+  // Which background swatch is active; none while "No background" is on.
+  const manual = s.frame && !s.autoBackground;
+  const imageBg = manual && bg.kind === "image" ? bg : null;
   const keep = imageBg ? { brightness: imageBg.brightness, blur: imageBg.blur } : { brightness: 100, blur: 0 };
 
   const pickImage = async () => {
@@ -47,11 +50,18 @@ export default function Panel({ edgeBackground, onError }: { edgeBackground: Bac
 
       <section>
         <h2>{t.panel.background}</h2>
+        <div className="row">
+          <button
+            className={`no-background${s.frame ? "" : " active"}`} aria-pressed={!s.frame}
+            onClick={() => set({ frame: !s.frame })} title={t.panel.noBackgroundHint}
+          >{t.panel.noBackground}</button>
+        </div>
+        {!s.frame && <p className="hint">{t.panel.noBackgroundHint}</p>}
         <div className="swatches">
           <button
-            className={`swatch auto${s.autoBackground ? " active" : ""}`}
+            className={`swatch auto${s.frame && s.autoBackground ? " active" : ""}`}
             style={{ background: edgeBackground ? css(edgeBackground) : undefined }}
-            onClick={() => set({ autoBackground: true })}
+            onClick={() => set({ autoBackground: true, frame: true })}
             title={t.panel.autoBackground}
           >A</button>
           {GRADIENTS.map((g) => {
@@ -59,14 +69,14 @@ export default function Panel({ edgeBackground, onError }: { edgeBackground: Bac
             return (
               <button
                 key={g.id} title={g.name}
-                className={`swatch${!s.autoBackground && same(b, bg) ? " active" : ""}`}
+                className={`swatch${manual && same(b, bg) ? " active" : ""}`}
                 style={{ background: css(b) }}
                 onClick={() => pickBg(b)}
               />
             );
           })}
           <button
-            className={`swatch none${!s.autoBackground && bg.kind === "none" ? " active" : ""}`}
+            className={`swatch none${manual && bg.kind === "none" ? " active" : ""}`}
             title={t.panel.transparent} onClick={() => pickBg({ kind: "none" })}
           />
         </div>
@@ -86,7 +96,7 @@ export default function Panel({ edgeBackground, onError }: { edgeBackground: Bac
             <span>{t.panel.gradient}</span>
           </label>
         </div>
-        {bg.kind === "gradient" && !s.autoBackground && (
+        {bg.kind === "gradient" && manual && (
           <Slider label={t.panel.angle} value={bg.angle} min={0} max={360} onChange={(angle) => pickBg({ ...bg, angle })} />
         )}
         <div className="row">
@@ -102,31 +112,36 @@ export default function Panel({ edgeBackground, onError }: { edgeBackground: Bac
         )}
       </section>
 
-      <section>
-        <h2>{t.panel.frame}</h2>
-        <Toggle
-          label={t.panel.autoBalance} checked={s.autoBalance} onChange={(autoBalance) => set({ autoBalance })}
-          hint={t.panel.autoBalanceHint}
-        />
-        <Slider label={t.panel.padding} value={s.padding} min={0} max={100} onChange={(padding) => set({ padding })} />
-        <Slider label={t.panel.inset} value={s.inset} min={0} max={100} onChange={(inset) => set({ inset })} />
-        <Slider label={t.panel.radius} value={s.radius} min={0} max={60} onChange={(radius) => set({ radius })} />
-        <Slider label={t.panel.shadow} value={s.shadow} min={0} max={100} onChange={(shadow) => set({ shadow })} />
-      </section>
+      {/* Frame and ratio do nothing without a background; their values are kept for when it comes back. */}
+      {s.frame && (
+        <>
+          <section>
+            <h2>{t.panel.frame}</h2>
+            <Toggle
+              label={t.panel.autoBalance} checked={s.autoBalance} onChange={(autoBalance) => set({ autoBalance })}
+              hint={t.panel.autoBalanceHint}
+            />
+            <Slider label={t.panel.padding} value={s.padding} min={0} max={100} onChange={(padding) => set({ padding })} />
+            <Slider label={t.panel.inset} value={s.inset} min={0} max={100} onChange={(inset) => set({ inset })} />
+            <Slider label={t.panel.radius} value={s.radius} min={0} max={60} onChange={(radius) => set({ radius })} />
+            <Slider label={t.panel.shadow} value={s.shadow} min={0} max={100} onChange={(shadow) => set({ shadow })} />
+          </section>
 
-      <section>
-        <h2>{t.panel.ratio}</h2>
-        <div className="ratios">
-          {RATIOS.map((r) => (
-            <button
-              key={r.id} className={s.ratio === r.id ? "active" : ""} onClick={() => set({ ratio: r.id })}
-              title={r.id === "auto" ? t.ratios.autoHint : r.id === "1:1" ? t.ratios.square : r.id === "9:16" ? t.ratios.portrait : r.hint}
-            >
-              {r.id === "auto" ? t.ratios.auto : r.label}
-            </button>
-          ))}
-        </div>
-      </section>
+          <section>
+            <h2>{t.panel.ratio}</h2>
+            <div className="ratios">
+              {RATIOS.map((r) => (
+                <button
+                  key={r.id} className={s.ratio === r.id ? "active" : ""} onClick={() => set({ ratio: r.id })}
+                  title={r.id === "auto" ? t.ratios.autoHint : r.id === "1:1" ? t.ratios.square : r.id === "9:16" ? t.ratios.portrait : r.hint}
+                >
+                  {r.id === "auto" ? t.ratios.auto : r.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
       <button className="reset" onClick={reset}>{t.panel.resetAll}</button>
     </aside>

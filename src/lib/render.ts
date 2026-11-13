@@ -111,7 +111,9 @@ export function render(
   ctx.clearRect(0, 0, L.width, L.height);
   ctx.imageSmoothingQuality = "high";
 
-  paintBackground(ctx, bg, L.width, L.height, scale, bgImage);
+  // With no background the screenshot covers every pixel, so there is nothing to paint (and a
+  // JPEG export gets no black or white margin).
+  if (s.frame) paintBackground(ctx, bg, L.width, L.height, scale, bgImage);
 
   // Card with shadow, filled with the screenshot's edge colour (visible as inset).
   ctx.save();

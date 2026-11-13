@@ -20,6 +20,14 @@ describe("watermark", () => {
     expect(p.x).toBe(L.width / 2);
   });
 
+  it("goes inside the screenshot's corner with no background", () => {
+    const L = computeLayout(1000, 600, { ...DEFAULT_SETTINGS, frame: false });
+    const p = watermarkPlacement(L, "bottom-right");
+    expect(p.inPadding).toBe(false);
+    expect(p.x).toBeLessThan(1000);
+    expect(p.y).toBeLessThan(600);
+  });
+
   it("expands {date}", () => {
     expect(watermarkText("by me · {date}", new Date(2026, 10, 10))).toBe(`by me · ${new Date(2026, 10, 10).toLocaleDateString()}`);
   });

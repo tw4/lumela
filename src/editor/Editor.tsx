@@ -7,7 +7,7 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import {
   Annotation, applyStyle, drawAnnotations, emptyHistory, historyReducer, newId, RenderContext, reorder, TextAnn,
 } from "../lib/annotations";
-import { autoGradient, Background, computeLayout, dominantEdgeColor, Layout, trimBounds, unit } from "../lib/beautify";
+import { autoGradient, Background, computeLayout, DEFAULT_SETTINGS, dominantEdgeColor, Layout, trimBounds, unit } from "../lib/beautify";
 import {
   copyCanvas, copyText, currentInfo, currentPixels, detectSensitive, ImageInfo, loadClipboardImage, loadImageFile, ocrCurrent,
   OcrResult, readImageFile, saveCanvas, startCapture,
@@ -83,7 +83,8 @@ export default function Editor() {
     let saved: SavedState | null = null;
     if (info.historyId && info.source === "history") {
       saved = await historyGetState(info.historyId).then((s) => (s ? (JSON.parse(s) as SavedState) : null)).catch(() => null);
-      if (saved?.beautify) useStore.setState({ beautify: saved.beautify, activePresetId: null });
+      // Entries saved by older versions lack newer fields (e.g. `frame`), so fill in the defaults.
+      if (saved?.beautify) useStore.setState({ beautify: { ...DEFAULT_SETTINGS, ...saved.beautify }, activePresetId: null });
     }
     setImg({ info, canvas, edge, trimmed });
     dispatch({ type: "reset", next: saved?.annotations ?? [] });
@@ -182,15 +183,16 @@ export default function Editor() {
     const full = { x: 0, y: 0, w: img.info.width, h: img.info.height };
     return {
       canvas: img.canvas,
-      crop: beautify.autoBalance ? img.trimmed : full,
+      // With no background the screenshot is exported as captured, so auto-balance does not trim it.
+      crop: beautify.autoBalance && beautify.frame ? img.trimmed : full,
       edge: img.edge,
       minRadius: img.info.source === "window" ? 10 : 0,
     };
-  }, [img, beautify.autoBalance]);
+  }, [img, beautify.autoBalance, beautify.frame]);
 
   const background: Background = useMemo(
-    () => (beautify.autoBackground && img ? autoGradient(img.edge) : beautify.background),
-    [beautify.autoBackground, beautify.background, img],
+    () => (!beautify.frame ? { kind: "none" } : beautify.autoBackground && img ? autoGradient(img.edge) : beautify.background),
+    [beautify.frame, beautify.autoBackground, beautify.background, img],
   );
 
   const bgImage = useBackgroundImage(background, (m) => notify(m, true));

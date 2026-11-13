@@ -131,7 +131,8 @@ kbd {
 .panel section { padding: 12px 0; border-bottom: 1px solid var(--border); display: grid; gap: 10px; }
 .panel h2 { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
 
-.swatches { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+/* minmax(0, …): the buttons' minimum width must not push the grid wider than the panel. */
+.swatches { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .swatch {
   aspect-ratio: 1; padding: 0; border-radius: 8px; border: 2px solid transparent;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
@@ -141,6 +142,7 @@ kbd {
 .swatch.none {
   background: repeating-conic-gradient(#cfd3d9 0 25%, #ffffff 0 50%) 0 0 / 10px 10px;
 }
+.panel .hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .color { display: flex; align-items: center; gap: 6px; color: var(--muted); }
