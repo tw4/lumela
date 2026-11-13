@@ -124,6 +124,32 @@ await page.keyboard.press("Delete");
 await shot("5-deleted");
 await page.keyboard.press("Control+z");
 
+// Step markers: each click adds the next number, deleting one closes the gap, undo restores it
+const stepNumbers = () => page.evaluate(() => JSON.stringify(window.__scs.annotations.filter((a) => a.kind === "step").map((a) => a.n)));
+await useTool("Digit5", "step");
+for (const [x, y] of [[1000, 120], [1080, 120], [1160, 120]]) {
+  const p = at(x, y);
+  await page.mouse.click(p.x, p.y);
+  await frames();
+}
+check("step clicks add 1, 2, 3", (await stepNumbers()) === "[1,2,3]", await stepNumbers());
+await shot("5b-steps");
+await useTool("KeyV", "select");
+const step2 = await page.evaluate(() => window.__scs.annotations.find((a) => a.kind === "step" && a.n === 2));
+const s2 = at(step2.x, step2.y);
+await page.mouse.click(s2.x, s2.y);
+const step2Selected = await page
+  .waitForFunction((id) => window.__scs.selected.length === 1 && window.__scs.selected[0] === id, step2.id, { timeout: 5000 })
+  .then(() => true, () => false);
+check("click selects step marker", step2Selected);
+await page.keyboard.press("Delete");
+await frames();
+check("deleting step 2 renumbers to 1, 2", (await stepNumbers()) === "[1,2]", await stepNumbers());
+await shot("5c-step-deleted");
+await page.keyboard.press("Control+z");
+await frames();
+check("undo brings back 1, 2, 3", (await stepNumbers()) === "[1,2,3]", await stepNumbers());
+
 // Auto-redact adds one redaction per sensitive hit
 await page.locator("button", { hasText: "Auto redact" }).click();
 await page.waitForFunction(() => document.querySelector(".toast")?.textContent?.includes("redacted"), null, { timeout: 5000 });

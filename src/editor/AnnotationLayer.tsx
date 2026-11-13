@@ -1,12 +1,12 @@
 import Konva from "konva";
 import { useEffect, useRef } from "react";
 import {
-  Annotation, ArrowAnn, buildNode, defaultControl, newId, normRect, populate, RenderContext, translate,
+  Annotation, ArrowAnn, buildNode, defaultControl, newId, nextStepNumber, normRect, populate, RenderContext, translate,
 } from "../lib/annotations";
 import type { Layout } from "../lib/beautify";
 import type { ToolStyle } from "../lib/store";
 
-export type Tool = "select" | "arrow" | "text" | "shape" | "redact" | "ocr";
+export type Tool = "select" | "arrow" | "text" | "shape" | "redact" | "step" | "ocr";
 
 export interface AnnotationLayerProps {
   layout: Layout;
@@ -129,6 +129,16 @@ export default function AnnotationLayer(props: AnnotationLayerProps) {
       }
       // Text is placed on click (after mouseup), so the new textarea keeps focus.
       if (p.tool === "text") return;
+      // Each click drops the next numbered marker; there is nothing to drag out.
+      if (p.tool === "step") {
+        const pt = imagePoint();
+        p.onCommit([...p.annotations, {
+          id: newId(), kind: "step", x: pt.x, y: pt.y, n: nextStepNumber(p.annotations),
+          color: p.style.stepColor, size: p.style.stepSize * p.unit,
+        }]);
+        p.onSelect([]);
+        return;
+      }
       start = imagePoint();
       draft = makeDraft(start);
       p.onSelect([]);
@@ -227,11 +237,15 @@ export default function AnnotationLayer(props: AnnotationLayerProps) {
     // ---- resize with the transformer (one undo step per resize)
     ui.destroyChildren();
     const transformable = tool === "select" ? selectedNodes.filter((n) => byId.get(n.id())?.kind !== "arrow") : [];
-    const onlyText = transformable.length > 0 && transformable.every((n) => byId.get(n.id())?.kind === "text");
+    // Text and step markers only scale evenly (font size, circle radius).
+    const uniform = transformable.length > 0 && transformable.every((n) => {
+      const kind = byId.get(n.id())?.kind;
+      return kind === "text" || kind === "step";
+    });
     tr.nodes(transformable);
-    tr.keepRatio(onlyText);
+    tr.keepRatio(uniform);
     const corners = ["top-left", "top-right", "bottom-left", "bottom-right"];
-    tr.enabledAnchors(onlyText ? corners : [...corners, "top-center", "middle-right", "middle-left", "bottom-center"]);
+    tr.enabledAnchors(uniform ? corners : [...corners, "top-center", "middle-right", "middle-left", "bottom-center"]);
     tr.off("transformend");
     tr.on("transformend", () => {
       const p = propsRef.current;
@@ -241,6 +255,11 @@ export default function AnnotationLayer(props: AnnotationLayerProps) {
         if (!a) continue;
         const sx = n.scaleX(), sy = n.scaleY();
         if (a.kind === "text") changed.set(a.id, { ...a, x: n.x(), y: n.y(), size: Math.max(6, a.size * sy) });
+        else if (a.kind === "step") {
+          // The node's box is the circle's bounding square; the model stores the centre.
+          const r = Math.max(4, a.size * Math.min(sx, sy));
+          changed.set(a.id, { ...a, x: n.x() + r, y: n.y() + r, size: r });
+        }
         else if (a.kind === "shape" && a.shape === "ellipse") {
           const rx = (n as Konva.Ellipse).radiusX() * sx, ry = (n as Konva.Ellipse).radiusY() * sy;
           changed.set(a.id, { ...a, x: n.x() - rx, y: n.y() - ry, w: rx * 2, h: ry * 2 });

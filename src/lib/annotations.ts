@@ -21,7 +21,9 @@ export interface ShapeAnn extends Base {
 }
 export interface TextAnn extends Base { kind: "text"; x: number; y: number; text: string; color: string; size: number }
 export interface RedactAnn extends Base { kind: "redact"; x: number; y: number; w: number; h: number; mode: RedactMode; color: string }
-export type Annotation = ArrowAnn | ShapeAnn | TextAnn | RedactAnn;
+/** Numbered step marker. (x, y) is the centre, `size` the radius. */
+export interface StepAnn extends Base { kind: "step"; x: number; y: number; n: number; color: string; size: number }
+export type Annotation = ArrowAnn | ShapeAnn | TextAnn | RedactAnn | StepAnn;
 
 /** Pixels the redact effects read from. */
 export interface RenderContext { source: CanvasImageSource & { width: number; height: number }; crop: Box }
@@ -50,6 +52,8 @@ export function bounds(a: Annotation): Box {
       const x = Math.min(...xs), y = Math.min(...ys);
       return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
     }
+    case "step":
+      return { x: a.x - a.size, y: a.y - a.size, w: a.size * 2, h: a.size * 2 };
     case "text": {
       const lines = a.text.split("\n");
       return { x: a.x, y: a.y, w: Math.max(...lines.map((l) => l.length)) * a.size * 0.6, h: lines.length * a.size * 1.2 };
@@ -63,6 +67,42 @@ export function bounds(a: Annotation): Box {
 export function translate(a: Annotation, dx: number, dy: number): Annotation {
   if (a.kind === "arrow") return { ...a, x1: a.x1 + dx, y1: a.y1 + dy, x2: a.x2 + dx, y2: a.y2 + dy, cx: a.cx + dx, cy: a.cy + dy };
   return { ...a, x: a.x + dx, y: a.y + dy };
+}
+
+// ------------------------------------------------------------------ steps
+
+/** Number for the next step marker: one more than the highest so far. */
+export function nextStepNumber(list: Annotation[]): number {
+  return list.reduce((n, a) => (a.kind === "step" ? Math.max(n, a.n) : n), 0) + 1;
+}
+
+/** Renumbers step markers 1, 2, 3, … keeping their order, so deleting one leaves no gap. */
+export function renumberSteps(list: Annotation[]): Annotation[] {
+  const steps = list.filter((a): a is StepAnn => a.kind === "step").sort((a, b) => a.n - b.n);
+  const numbers = new Map(steps.map((a, i) => [a.id, i + 1]));
+  if (steps.every((a) => a.n === numbers.get(a.id))) return list;
+  return list.map((a) => (a.kind === "step" ? { ...a, n: numbers.get(a.id)! } : a));
+}
+
+/** Black or white number on a marker filled with `hex`, based on its relative luminance. */
+export function contrastText(hex: string): "#000000" | "#ffffff" {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return "#ffffff";
+  const v = parseInt(m[1], 16);
+  const lin = (c: number) => {
+    const x = c / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  };
+  const l = 0.2126 * lin((v >> 16) & 255) + 0.7152 * lin((v >> 8) & 255) + 0.0722 * lin(v & 255);
+  // The strict WCAG crossover (≈0.18) would put black on the default red; bold white digits on
+  // saturated reds, blues and purples read well, so black is kept for light fills (yellow, white, light green).
+  return l > 0.4 ? "#000000" : "#ffffff";
+}
+
+/** Font size for a step number so that one, two or three digits fit inside the circle. */
+export function stepFontSize(n: number, radius: number): number {
+  const digits = String(n).length;
+  return radius * (digits === 1 ? 1.15 : digits === 2 ? 0.95 : 0.72);
 }
 
 function redactCanvas(a: RedactAnn, rc: RenderContext): HTMLCanvasElement {
@@ -129,6 +169,36 @@ export function buildNode(a: Annotation, rc: RenderContext | null): Konva.Shape 
         fontFamily: "Segoe UI, system-ui, sans-serif", fontStyle: "600",
         shadowColor: "rgba(0,0,0,0.25)", shadowBlur: a.size * 0.15, shadowOffsetY: a.size * 0.04,
       });
+    case "step": {
+      const r = a.size;
+      const label = String(a.n);
+      const textColor = contrastText(a.color);
+      const fontSize = stepFontSize(a.n, r);
+      // One shape (not a group) so selection, dragging and the transformer treat it like the others.
+      // Its box is the circle's bounding square, so (x, y) is the top-left corner.
+      return new Konva.Shape({
+        ...common, x: a.x - r, y: a.y - r, width: r * 2, height: r * 2, fill: a.color,
+        shadowColor: "rgba(0,0,0,0.3)", shadowBlur: r * 0.35, shadowOffsetY: r * 0.08,
+        sceneFunc: (ctx, shape) => {
+          ctx.beginPath();
+          ctx.arc(r, r, r, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStrokeShape(shape);
+          ctx.setAttr("shadowColor", "transparent");
+          ctx.setAttr("fillStyle", textColor);
+          ctx.setAttr("font", `700 ${fontSize}px "Segoe UI", system-ui, sans-serif`);
+          ctx.setAttr("textAlign", "center");
+          ctx.setAttr("textBaseline", "middle");
+          ctx.fillText(label, r, r + fontSize * 0.04);
+        },
+        hitFunc: (ctx, shape) => {
+          ctx.beginPath();
+          ctx.arc(r, r, r, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStrokeShape(shape);
+        },
+      });
+    }
     case "redact":
       if (a.mode === "solid" || !rc) {
         return new Konva.Rect({ ...common, x: a.x, y: a.y, width: a.w, height: a.h, fill: a.color });
@@ -220,6 +290,8 @@ export function applyStyle(a: Annotation, s: Partial<ToolStyle>, unit: number): 
       };
     case "redact":
       return { ...a, mode: s.redactMode ?? a.mode, color: s.redactColor ?? a.color };
+    case "step":
+      return { ...a, color: s.stepColor ?? a.color, size: s.stepSize !== undefined ? s.stepSize * unit : a.size };
   }
 }
 
