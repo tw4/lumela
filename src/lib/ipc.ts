@@ -27,6 +27,7 @@ export interface OverlayInfo { width: number; height: number; windowMode: boolea
 export type PermissionStatus = "granted" | "denied" | "unsupported";
 export const screenPermission = () => invoke<PermissionStatus>("screen_permission");
 export const openPermissionSettings = () => invoke<void>("open_permission_settings");
+export const resetScreenPermission = () => invoke<PermissionStatus>("reset_screen_permission");
 export const restartApp = () => invoke<void>("restart_app");
 export const selfUpdateSupported = () => invoke<boolean>("self_update_supported");
 

@@ -120,6 +120,8 @@ export const tr: Dict = {
     step3: "İzin macOS'ta ancak yeniden başlatınca geçerli olur; aşağıdan uygulamayı yeniden başlatın.",
     openSettings: "Sistem Ayarları'nı aç",
     restart: "Yeniden başlat",
+    stale: "İzin açık olduğu halde hâlâ soruluyor mu? Güncellemeden sonra macOS uygulamayla artık eşleşmeyen eski bir kayıt tutabilir. İzni sıfırlayın, Lumela'yı yeniden açın ve uygulamayı yeniden başlatın.",
+    reset: "İzni sıfırla",
   },
   overlay: {
     windowHint: "Tıkla: pencereyi yakala  ·  Space: alan modu  ·  Esc: iptal",
