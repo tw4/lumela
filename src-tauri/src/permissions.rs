@@ -45,5 +45,24 @@ pub fn request() -> bool {
     true
 }
 
+/// Clears this app's Screen Recording entry so macOS asks again. An ad-hoc signed
+/// app is identified by the hash of its code, so after an update or reinstall the old
+/// grant still shows as enabled in System Settings but no longer applies to the app.
+pub fn reset(bundle_id: &str) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let out = std::process::Command::new("/usr/bin/tccutil")
+            .args(["reset", "ScreenCapture", bundle_id])
+            .output()
+            .map_err(|e| e.to_string())?;
+        if !out.status.success() {
+            return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = bundle_id;
+    Ok(())
+}
+
 /// Deep link to the Screen Recording pane.
 pub const SETTINGS_URL: &str = "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture";

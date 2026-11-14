@@ -51,6 +51,9 @@
       "icons/icon.ico"
     ],
     "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "linux": {
       "deb": {
         "depends": [

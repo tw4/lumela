@@ -232,6 +232,36 @@ await page.waitForTimeout(400);
 check("custom watermark is drawn when enabled", (await bottomRight()) !== plain);
 await shot("10-watermark");
 
+// macOS permission dialog: shown when access is denied, Reset clears the grant and
+// then opens System Settings.
+const pp = await browser.newPage({ viewport: { width: 1200, height: 800 }, locale: "en-US" });
+const permLogs = [];
+pp.on("pageerror", (e) => errors.push(String(e)));
+pp.on("console", (m) => permLogs.push(m.text()));
+await pp.goto(url + "?perm=denied");
+const dialog = pp.locator('[role="dialog"][aria-labelledby="perm-title"]');
+await dialog.waitFor({ timeout: 15000 });
+check("permission dialog shows when denied", await dialog.isVisible());
+check("permission dialog explains a stale grant", (await dialog.textContent()).includes("Already turned on but still asked?"));
+await pp.screenshot({ path: join(out, "11-permission.png") });
+await dialog.getByRole("button", { name: "Reset permission" }).click();
+await pp.waitForTimeout(300);
+const iReset = permLogs.findIndex((l) => l.includes("[mock] reset_screen_permission"));
+const iOpen = permLogs.findIndex((l) => l.includes("[mock] open_permission_settings"));
+check("reset clears the grant, then opens System Settings", iReset >= 0 && iOpen > iReset, permLogs.join(" | "));
+await dialog.getByRole("button", { name: "Restart" }).click();
+await pp.waitForTimeout(200);
+check("restart button invokes restart", permLogs.some((l) => l.includes("[mock] restart_app")));
+await dialog.getByRole("button", { name: "Close" }).click();
+check("permission dialog closes", await dialog.count() === 0);
+await pp.close();
+const granted = await browser.newPage({ locale: "en-US" });
+await granted.goto(url);
+await granted.waitForSelector(".annotation-layer canvas", { timeout: 15000 });
+await granted.waitForTimeout(300);
+check("no permission dialog when granted", await granted.locator('[aria-labelledby="perm-title"]').count() === 0);
+await granted.close();
+
 // Settings window renders every tab
 const sp = await browser.newPage({ viewport: { width: 800, height: 640 }, locale: "en-US" });
 sp.on("pageerror", (e) => errors.push(String(e)));

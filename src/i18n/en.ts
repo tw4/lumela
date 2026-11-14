@@ -119,6 +119,8 @@ export const en = {
     step3: "macOS applies the permission after a restart; restart the app below.",
     openSettings: "Open System Settings",
     restart: "Restart",
+    stale: "Already turned on but still asked? After an update macOS can keep an old entry that no longer matches the app. Reset it, turn Lumela on again and restart.",
+    reset: "Reset permission",
   },
   overlay: {
     windowHint: "Click: capture window  ·  Space: area mode  ·  Esc: cancel",

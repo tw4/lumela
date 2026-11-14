@@ -388,6 +388,14 @@ fn open_permission_settings(app: AppHandle) -> Result<(), String> {
     app.opener().open_url(permissions::SETTINGS_URL, None::<&str>).map_err(|e| e.to_string())
 }
 
+/// Drops a stale Screen Recording grant (see `permissions::reset`) and asks again.
+#[tauri::command]
+fn reset_screen_permission(app: AppHandle) -> Result<permissions::Status, String> {
+    permissions::reset(&app.config().identifier)?;
+    permissions::request();
+    Ok(permissions::status())
+}
+
 /// macOS applies a newly granted Screen Recording permission only after a restart.
 #[tauri::command]
 fn restart_app(app: AppHandle) {
@@ -750,6 +758,7 @@ pub fn run() {
             open_settings,
             screen_permission,
             open_permission_settings,
+            reset_screen_permission,
             restart_app,
             self_update_supported,
         ])

@@ -59,6 +59,14 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: npx tauri build ${{ matrix.args }}
+      # Screen Recording grants are tied to the bundle's signature; an unsigned bundle
+      # (only the linker's signature on the binary) never matches the grant.
+      - name: Verify macOS bundle signature
+        if: runner.os == 'macOS'
+        run: |
+          app="${{ matrix.bundle }}/macos/Lumela.app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv "$app" 2>&1 | grep -q '^Identifier=app.lumela.desktop$'
       - name: Leak audit (bundle, frontend, binary)
         shell: bash
         run: node scripts/audit-release.mjs dist "${{ matrix.bundle }}" "${{ matrix.binary }}"
