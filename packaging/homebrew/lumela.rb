@@ -1,6 +1,6 @@
 cask "lumela" do
-  version "0.2.0"
-  sha256 "cc39ef4cf9f03da3b46f5a39517ad12eb5088d57e07aa8f23697bfa9f218821e"
+  version "0.2.1"
+  sha256 "03f3cbf8aca64e2e07e3ce1cdbf66a737b22b7709a20fda23dc52c99e2c897d8"
 
   url "https://github.com/tw4/lumela/releases/download/v#{version}/Lumela_#{version}_universal.dmg"
   name "Lumela"
