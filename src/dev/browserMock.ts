@@ -49,6 +49,8 @@ export function installBrowserMock() {
   const savedState = JSON.stringify({
     annotations: [{ id: "h1", kind: "arrow", x1: 900, y1: 600, x2: 700, y2: 400, cx: 0, cy: 0, style: "straight", color: "#34c759", width: 6 }],
   });
+  // ?perm=denied simulates macOS without Screen Recording access.
+  let permission = new URLSearchParams(location.search).get("perm") ?? "granted";
   let appSettings = { hideAtLaunch: false, hideEditorWhileCapturing: true, keepHistory: true };
   mockIPC(async (cmd, args) => {
     switch (cmd) {
@@ -91,6 +93,14 @@ export function installBrowserMock() {
         }
         return hits;
       }
+      case "screen_permission": return permission;
+      case "reset_screen_permission":
+        console.info("[mock]", cmd);
+        permission = "denied";
+        return permission;
+      case "open_permission_settings": case "restart_app":
+        console.info("[mock]", cmd);
+        return null;
       case "copy_rgba": case "save_bytes": case "set_shortcuts": case "suspend_shortcuts": case "copy_text":
         console.info("[mock]", cmd, args);
         return cmd === "save_bytes" ? "C:\\mock\\saved.png" : null;

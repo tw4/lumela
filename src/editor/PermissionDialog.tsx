@@ -15,9 +15,11 @@ export default function PermissionDialog({ onClose }: { onClose: () => void }) {
           <li>{t.permission.step3}</li>
         </ol>
         <p>{t.permission.stale}</p>
+        <div className="row">
+          <button onClick={() => resetScreenPermission().then(openPermissionSettings, openPermissionSettings)}>{t.permission.reset}</button>
+        </div>
         <div className="row end">
           <button onClick={onClose}>{t.common.close}</button>
-          <button onClick={() => resetScreenPermission().then(openPermissionSettings, openPermissionSettings)}>{t.permission.reset}</button>
           <button onClick={() => openPermissionSettings()}>{t.permission.openSettings}</button>
           <button className="primary" onClick={() => restartApp()}>{t.permission.restart}</button>
         </div>
