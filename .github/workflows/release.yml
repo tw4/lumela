@@ -25,7 +25,9 @@ jobs:
             args: "--target universal-apple-darwin"
             bundle: src-tauri/target/universal-apple-darwin/release/bundle
             binary: src-tauri/target/universal-apple-darwin/release/lumela
-          - os: ubuntu-24.04
+          # Oldest Ubuntu LTS still in standard support: the binaries link against the
+          # build system's glibc, so building on a newer release breaks older distros.
+          - os: ubuntu-22.04
             args: ""
             bundle: src-tauri/target/release/bundle
             binary: src-tauri/target/release/lumela
