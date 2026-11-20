@@ -87,24 +87,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-22.04]
+        # ubuntu-22.04 is the base the Linux release is built on (see release.yml).
+        os: [windows-latest, macos-latest, ubuntu-24.04, ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Linux dependencies (Tauri, xcap, tesseract)
         if: runner.os == 'Linux'
-        # pipewire-rs (via xcap) needs newer PipeWire headers than Ubuntu 22.04 ships (0.3.48).
         run: |
-          sudo add-apt-repository -y ppa:pipewire-debian/pipewire-upstream
-          # Tesseract 4.1 (22.04 default) misses lines in the OCR fixture; test with 5.x.
-          sudo add-apt-repository -y ppa:alex-p/tesseract-ocr5
+          # pipewire-rs (via xcap) needs newer PipeWire headers than Ubuntu 22.04 ships (0.3.48).
+          if [ "${{ matrix.os }}" = ubuntu-22.04 ]; then
+            sudo add-apt-repository -y ppa:pipewire-debian/pipewire-upstream
+          fi
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev \
             libssl-dev patchelf libxcb1-dev libxrandr-dev libdbus-1-dev libpipewire-0.3-dev libwayland-dev \
             libegl-dev libgbm-dev tesseract-ocr tesseract-ocr-eng
-          # Use the same English model as Ubuntu 24.04 (tessdata_fast 4.1.0); the PPA's
-          # model reads the API key in the OCR fixture with too low a confidence.
-          sudo curl -fsSL -o "$(dpkg -L tesseract-ocr-eng | grep '/eng.traineddata$')"             https://github.com/tesseract-ocr/tessdata_fast/raw/4.1.0/eng.traineddata
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -117,7 +115,10 @@ jobs:
       - run: npm ci && npm run build
       - name: cargo test
         working-directory: src-tauri
-        run: cargo test --locked
+        shell: bash
+        # The platform OCR tests depend on the system tesseract, which reads the fixtures
+        # differently on 22.04; they run on ubuntu-24.04 and the other platforms.
+        run: cargo test --locked ${{ matrix.os == 'ubuntu-22.04' && '-- --skip platform_ocr' || '' }}
       - name: cargo clippy
         working-directory: src-tauri
         run: cargo clippy --locked --all-targets -- -D warnings
